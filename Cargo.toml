@@ -1,0 +1,28 @@
+[package]
+name = "athenacli"
+description = "CLI tool for running queries against AWS Athena"
+version = "0.1.0"
+authors = ["Cameron Daniel <cam.daniel@gmail.com>"]
+edition = "2018"
+readme = "README.md"
+license = "MIT"
+keywords = ["aws", "athena", "database", "sql"]
+repository = "https://github.com/ccakes/athenacli-rs"
+homepage = "https://github.com/ccakes/athenacli-rs"
+
+
+[dependencies]
+ascii_table = "^3.0"
+byte-unit = "^4.0"
+http = "^0.2"
+humantime = "^2.0"
+hyper = "^0.13"
+hyper-proxy = "^0.7"
+rusoto_athena = "^0.45"
+rusoto_core = "^0.45"
+rusoto_signature = "^0.45"
+structopt = "^0.3"
+tokio = { version ="> 0.2.20", features = ["macros", "rt-core", "time"] }
+tracing = "^0.1"
+tracing-subscriber = "^0.2"
+uuid = { version = "^0.8", features = ["v4"] }
