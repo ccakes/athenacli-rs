@@ -5,6 +5,7 @@ pub enum Error {
     GetQueryResultsError(String),
     InvalidProxy(http::uri::InvalidUri),
     InvalidRegion,
+    InvalidSql(sqlparser::parser::ParserError),
     TracingFormat,
     QueryError,
     QueryCancelled,
@@ -24,6 +25,7 @@ impl std::fmt::Display for Error {
             Self::GetQueryResultsError(error) => write!(f, "Error getting query results: {}", error),
             Self::InvalidProxy(error) => write!(f, "Invalid proxy URI: {}", error),
             Self::InvalidRegion => write!(f, "Invalid region specified"),
+            Self::InvalidSql(error) => write!(f, "Invalid SQL in provided file: {}", error),
             Self::TracingFormat => write!(f, "ATHENACLI_LOG contained invalid format"),
             Self::QueryError => write!(f, "Unknown error executing query"),
             Self::QueryCancelled => write!(f, "Query cancelled"),
@@ -61,6 +63,12 @@ impl From<rusoto_signature::region::ParseRegionError> for Error {
 impl From<std::io::Error> for Error {
     fn from(error: std::io::Error) -> Self {
         Self::IoErr(error)
+    }
+}
+
+impl From<sqlparser::parser::ParserError> for Error {
+    fn from(error: sqlparser::parser::ParserError) -> Self {
+        Self::InvalidSql(error)
     }
 }
 

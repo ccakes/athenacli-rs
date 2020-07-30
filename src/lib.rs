@@ -29,11 +29,11 @@ struct Config {
     #[structopt(short = "w", long = "workgroup")]
     pub workgroup: Option<String>,
 
-    /// run only single SQL statement and exit
+    /// run a single SQL statement, can be repeated
     #[structopt(short = "c", long = "command")]
-    command: Option<String>,
+    command: Option<Vec<String>>,
 
-    /// execute an SQL statement from file, then exit
+    /// execute one or more SQL statements from a file, then exit
     #[structopt(short = "f", long = "file")]
     file: Option<PathBuf>,
 
@@ -74,14 +74,18 @@ pub async fn run() -> Result<()> {
         std::process::exit(1);
     }
 
-    let query = match args.file {
+    let queries: Vec<_> = match args.file {
         Some(ref path) if !path.exists() => {
             tracing::error!(path = %path.display(), "input file does not exist");
             std::process::exit(1);
         },
         Some(ref path) => {
             let contents = std::fs::read_to_string(path)?;
-            contents
+            let ast = sqlparser::parser::Parser::parse_sql(
+                &sqlparser::dialect::GenericDialect {},
+                &contents
+            )?;
+            ast.into_iter().map(|sth| sth.to_string()).collect()
         },
         None => args.command.unwrap(),
     };
@@ -95,36 +99,38 @@ pub async fn run() -> Result<()> {
         workgroup = ?args.workgroup,
         "executing query"
     );
-    match athena.query(&query).await {
-        Ok(result) => {
-            tracing::info!(
-                rows = %result.rows,
-                data_scanned = %result.data_scanned(),
-                execution_time = %result.total_time(),
-                "query complete"
-            );
+    for query in queries.into_iter() {
+        match athena.query(&query).await {
+            Ok(result) => {
+                tracing::info!(
+                    rows = %result.rows,
+                    data_scanned = %result.data_scanned(),
+                    execution_time = %result.total_time(),
+                    "query complete"
+                );
 
-            // Return early if we have an empty resultset
-            if result.rows == 0 { return Ok(()); }
+                // Return early if we have an empty resultset
+                if result.rows == 0 { return Ok(()); }
 
-            // Now set up our table
-            let mut table = AsciiTable::default();
+                // Now set up our table
+                let mut table = AsciiTable::default();
 
-            for (idx, col) in result.columns.iter().enumerate() {
-                table.columns.insert(idx, Column {
-                    header: col.into(),
-                    align: Align::Left,
-                    ..Default::default()
-                });
+                for (idx, col) in result.columns.iter().enumerate() {
+                    table.columns.insert(idx, Column {
+                        header: col.into(),
+                        align: Align::Left,
+                        ..Default::default()
+                    });
+                }
+
+                table.print(result.data);
+            },
+            Err(error) => {
+                tracing::error!(%error, "error running query");
+                Err(error)?
             }
-
-            table.print(result.data);
-
-            Ok(())
-        },
-        Err(error) => {
-            tracing::error!(%error, "error running query");
-            Err(error)
-        }
+        };
     }
+
+    Ok(())
 }
