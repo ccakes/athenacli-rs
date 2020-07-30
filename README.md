@@ -4,11 +4,15 @@ This is a simple CLI tool for executing queries against AWS Athena. This scratch
 
 This is simple to include in scripts and can run queries either passed in via an argument or from a file and is a statically-compiled binary for extra simple deployments.
 
+### Getting Started
+
+Head over to the [Releases](https://github.com/ccakes/athenacli-rs/releases) page to download a binary for Linux or macOS.
+
 ### Usage
 
 ```
 $ athenacli --help
-athenacli 0.1.0
+athenacli 0.2.0
 Basic Athena CLI
 
 USAGE:
@@ -20,9 +24,9 @@ FLAGS:
     -v               Logging verbosity (repeat for more detail)
 
 OPTIONS:
-    -c, --command <command>          run only single SQL statement and exit
+    -c, --command <command>...       run a single SQL statement, can be repeated
     -d, --database <database>        database name to connect to
-    -f, --file <file>                execute an SQL statement from file, then exit
+    -f, --file <file>                execute one or more SQL statements from a file, then exit
     -r, --region <region>            AWS region [env: AWS_REGION=]
     -b, --results <result-bucket>    S3 bucket name for results (eg s3://my-results)
     -w, --workgroup <workgroup>      Athena workgroup to use

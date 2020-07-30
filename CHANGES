@@ -1,0 +1,7 @@
+Revision history for athenacli
+
+- v0.2.0 (2020-07-30)
+    - Support multiple queries via muliple instances of -c/--command or in the provided --file
+
+- v0.1.0 (2020-07-21)
+    - Initial release
